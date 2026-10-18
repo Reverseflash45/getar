@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Getar — gempa di sekitar daerahmu sejak 1900</title>
+    <meta
+      name="description"
+      content="Lebih dari 13 ribu gempa M5+ di Indonesia sejak 1900 dari katalog USGS. Cari gempa terkuat di sekitar kabupaten/kotamu, lihat petanya, dan kenapa gempa besar jauh lebih jarang."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://getar.vercel.app/" />
+    <meta property="og:title" content="Getar — gempa di sekitar daerahmu sejak 1900" />
+    <meta property="og:description" content="Cari gempa terkuat di sekitar kabupaten/kotamu dari katalog gempa USGS 1900–2026." />
+    <meta property="og:image" content="https://getar.vercel.app/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="canonical" href="https://getar.vercel.app/" />
+    <meta name="theme-color" content="#f6f3ea" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#13171a" media="(prefers-color-scheme: dark)" />
+    <link rel="icon" href="/ikon.svg" type="image/svg+xml" />
+    <link rel="preload" href="/data/gempa.json" as="fetch" crossorigin />
+  </head>
+  <body>
+    <header class="kepala">
+      <a class="merek" href="/">
+        <svg viewBox="0 0 40 20" aria-hidden="true"><path d="M0 10h9l3-7 4 15 4-13 3 9 2-4h15" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" /></svg>
+        Getar
+      </a>
+      <nav><a href="#sekitar">Daerahmu</a><a href="#peta">Peta</a><a href="#tentang">Tentang data</a></nav>
+    </header>
+
+    <main>
+      <section class="pembuka" aria-labelledby="judul">
+        <p class="label">Katalog gempa M5+ · <span data-rentang>1900–2026</span></p>
+        <h1 id="judul">Indonesia sudah bergetar <span class="merah" data-total>13.331</span> kali.</h1>
+        <p class="lead">
+          Itu baru gempa bermagnitudo 5 ke atas yang tercatat sejak 1900, di darat maupun di laut sekitarnya. Setiap garis di
+          pita di bawah ini adalah satu gempa; makin tinggi, makin kuat.
+        </p>
+        <div class="seismo-bingkai">
+          <div class="seismo" id="seismo" role="img" aria-label="Pita seismogram: setiap gempa M5 ke atas sejak 1900 digambar sebagai garis setinggi magnitudonya."></div>
+        </div>
+      </section>
+
+      <section class="bagian" id="sekitar" aria-labelledby="judul-sekitar">
+        <p class="label">Di sekitar daerahmu</p>
+        <h2 id="judul-sekitar">Seberapa sering daerahmu <em>bergetar?</em></h2>
+        <form class="cari" id="cari" autocomplete="off">
+          <div class="combo">
+            <label for="daerah" class="sr-only">Kabupaten atau kota</label>
+            <input id="daerah" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="saran" placeholder="Ketik kabupaten atau kota, misalnya Palu" spellcheck="false" />
+            <ul id="saran" role="listbox" class="saran" hidden></ul>
+          </div>
+          <div class="radius" role="group" aria-label="Radius">
+            <button type="button" data-radius="100" aria-pressed="false">100 km</button>
+            <button type="button" data-radius="150" aria-pressed="true">150 km</button>
+            <button type="button" data-radius="300" aria-pressed="false">300 km</button>
+          </div>
+        </form>
+
+        <div class="hasil-sekitar" id="hasil-sekitar" aria-live="polite">
+          <h3 class="nama-daerah" data-nama-daerah></h3>
+          <p class="kalimat" data-kalimat></p>
+          <ul class="ubin" data-ubin></ul>
+          <div class="sekitar-grid">
+            <div class="peta-kecil" id="peta-kecil"></div>
+            <div>
+              <h4 class="label">Lima terkuat dalam radius ini</h4>
+              <ol class="daftar-gempa" data-lima></ol>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="bagian" id="peta" aria-labelledby="judul-peta">
+        <p class="label">Semua gempa</p>
+        <h2 id="judul-peta">Mengikuti <em>batas lempeng</em></h2>
+        <p class="pengantar">
+          Titik-titik ini membentuk garis: palung di barat Sumatra dan selatan Jawa, lalu melingkar di Laut Banda dan utara
+          Papua. Kalimantan hampir kosong. Warnanya menunjukkan kedalaman; gempa dangkal biasanya paling merusak.
+        </p>
+        <div class="alat-peta">
+          <div class="radius" role="group" aria-label="Magnitudo minimum">
+            <button type="button" data-magmin="5" aria-pressed="true">M5+</button>
+            <button type="button" data-magmin="6" aria-pressed="false">M6+</button>
+            <button type="button" data-magmin="7" aria-pressed="false">M7+</button>
+          </div>
+          <ul class="legenda" aria-label="Kedalaman">
+            <li><i style="background: var(--dangkal)"></i>Dangkal &lt; 70 km</li>
+            <li><i style="background: var(--menengah)"></i>Menengah 70–300 km</li>
+            <li><i style="background: var(--dalam)"></i>Dalam &gt; 300 km</li>
+          </ul>
+        </div>
+        <div class="peta-besar" id="peta-besar" role="img" aria-label="Peta sebaran gempa di Indonesia"></div>
+        <p class="catatan" data-catatan-peta></p>
+      </section>
+
+      <section class="bagian" aria-labelledby="judul-terbesar">
+        <p class="label">Sepuluh terbesar</p>
+        <h2 id="judul-terbesar">Gempa-gempa <em>raksasa</em></h2>
+        <ol class="terbesar" data-terbesar></ol>
+      </section>
+
+      <section class="bagian" aria-labelledby="judul-gr">
+        <p class="label">Hukum Gutenberg–Richter</p>
+        <h2 id="judul-gr">Makin besar, makin <em>jarang</em></h2>
+        <p class="pengantar" data-pengantar-gr></p>
+        <div class="grafik" id="grafik-gr" role="img"></div>
+      </section>
+
+      <section class="bagian" aria-labelledby="judul-tahun">
+        <p class="label">Jumlah per tahun</p>
+        <h2 id="judul-tahun">Yang tercatat <em>makin banyak</em></h2>
+        <p class="pengantar">
+          Bukan berarti gempanya bertambah. Sebelum jaringan seismometer global berkembang pada 1960–1970-an, hanya gempa besar
+          yang tercatat. Lonjakan 2004–2005 adalah gempa susulan Aceh dan Nias.
+        </p>
+        <div class="grafik" id="grafik-tahun" role="img"></div>
+      </section>
+
+      <section class="bagian tentang" id="tentang" aria-labelledby="judul-tentang">
+        <h2 id="judul-tentang">Tentang data</h2>
+        <ul>
+          <li>
+            Katalog gempa: <a href="https://earthquake.usgs.gov/earthquakes/search/">USGS ComCat</a>, magnitudo 5 ke atas
+            sejak 1900, diperbarui <span data-dibangun>…</span>. Gempa yang lebih dari 400 km dari kabupaten/kota mana pun, atau
+            yang menurut USGS terjadi di negara tetangga, tidak dimasukkan.
+          </li>
+          <li>
+            "Di sekitar" dihitung dari jarak episentrum ke titik tengah wilayah kabupaten/kota (batas wilayah geoBoundaries:
+            BPS, WFP, OCHA ROAP, CC BY 3.0 IGO), bukan jarak ke rumahmu.
+          </li>
+          <li>Magnitudo dan lokasi gempa lama (sebelum ~1970) jauh kurang presisi, dan banyak gempa M5–6 waktu itu tidak tercatat.</li>
+          <li>
+            Ini catatan sejarah, <strong>bukan prakiraan</strong>. Gempa belum bisa diprediksi. Untuk informasi gempa terkini dan
+            peringatan tsunami, rujukan resminya <a href="https://www.bmkg.go.id/gempabumi/">BMKG</a>.
+          </li>
+        </ul>
+      </section>
+    </main>
+
+    <footer class="kaki">
+      <p>Dibuat oleh Rafi Fernandito · <a href="https://github.com/Reverseflash45/getar">kode sumber</a></p>
+    </footer>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
