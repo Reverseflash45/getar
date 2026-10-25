@@ -2,7 +2,7 @@
 
 ![Getar: Indonesia sudah bergetar 13.331 kali](public/og.png)
 
-**[Buka Getar](https://getar.vercel.app)**
+**[Buka Getar](https://getar.raffstw.my.id)**
 
 Seberapa sering daerahmu diguncang gempa? Getar memetakan 13 ribu lebih gempa
 bermagnitudo 5 ke atas di Indonesia sejak 1900 dari katalog USGS, lalu menjawabnya per
