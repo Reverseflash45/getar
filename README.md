@@ -8,8 +8,8 @@ Seberapa sering daerahmu diguncang gempa? Getar memetakan 13 ribu lebih gempa
 bermagnitudo 5 ke atas di Indonesia sejak 1900 dari katalog USGS, lalu menjawabnya per
 kabupaten/kota.
 
-- **Pita seismogram**: setiap gempa sejak 1900 digambar sebagai satu garis setinggi
-  magnitudonya, dengan tooltip.
+- **Lembar helikorder**: setiap gempa sejak 1900 digambar sebagai lonjakan setinggi
+  magnitudonya, satu baris drum per 25 tahun dengan tinta bergantian, dengan tooltip.
 - **Di sekitar daerahmu**: pilih satu dari 514 kabupaten/kota dan radius 100, 150, atau
   300 km. Hasilnya jumlah gempa M5+/M6+/M7+, yang terkuat dan terakhir, lima terkuat,
   serta peta kecil. Setiap pilihan punya tautan sendiri (`#daerah=kota-palu&r=150`).

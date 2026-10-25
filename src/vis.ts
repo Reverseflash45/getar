@@ -42,18 +42,34 @@ function buatTip(wadah: HTMLElement) {
   };
 }
 
-/* ---------- pita seismogram ---------- */
-/** Simpangan garis: diskalakan dari energi, dipangkas supaya M5 tetap terlihat dan M9 tidak keluar bingkai. */
-const simpangan = (m: number) => Math.min(1, 0.06 + 0.94 * ((m - 5) / 4.2) ** 1.6);
+/* ---------- helikorder ---------- */
+/** Simpangan jejak: diskalakan dari energi, dipangkas supaya M5 tetap terlihat. M8+ boleh menabrak baris tetangga, seperti helikorder sungguhan. */
+const simpangan = (m: number) => Math.min(1, 0.05 + 0.95 * ((m - 5) / 4.2) ** 1.6);
+
+/** Satu baris drum = 25 tahun; baris terakhir baru terisi sebagian, seperti drum yang masih berputar. */
+const AWAL_BARIS = 1900;
+const TAHUN_PER_BARIS = 25;
+const TINTA_BARIS = ["--jejak-1", "--jejak-2", "--jejak-3", "--jejak-4"];
 
 export function gambarSeismo(wadah: HTMLElement, k: Katalog): void {
   const lebar = Math.max(320, wadah.clientWidth);
-  const tinggi = lebar < 600 ? 150 : 210;
+  const sempit = lebar < 600;
+  const kiri = sempit ? 40 : 52;
+  const tinggiBaris = sempit ? 40 : 52;
+  const tahunKini = new Date().getUTCFullYear();
+  const nBaris = Math.floor((tahunKini - AWAL_BARIS) / TAHUN_PER_BARIS) + 1;
+  const atas = 18;
+  const tinggi = atas + nBaris * tinggiBaris + 10;
   const dpr = window.devicePixelRatio || 1;
-  const awal = Date.UTC(1900, 0, 1) / 1000;
-  const akhir = Math.max(k.t[k.n - 1], Date.now() / 1000);
-  const x = scaleLinear().domain([awal, akhir]).range([6, lebar - 6]);
-  const tengah = tinggi / 2;
+  const detikBaris = TAHUN_PER_BARIS * 365.2425 * 86400;
+  const awal = Date.UTC(AWAL_BARIS, 0, 1) / 1000;
+  const lebarJejak = lebar - kiri - 8;
+  const letak = (t: number) => {
+    const baris = Math.min(nBaris - 1, Math.floor((t - awal) / detikBaris));
+    const x = kiri + ((t - awal - baris * detikBaris) / detikBaris) * lebarJejak;
+    return { baris, x, y: atas + baris * tinggiBaris + tinggiBaris / 2 };
+  };
+  const amp = (m: number) => simpangan(m) * tinggiBaris * 0.95;
 
   wadah.innerHTML = "";
   const c = document.createElement("canvas");
@@ -63,67 +79,87 @@ export function gambarSeismo(wadah: HTMLElement, k: Katalog): void {
   wadah.append(c);
   const ctx = c.getContext("2d")!;
   ctx.scale(dpr, dpr);
-  const merah = cssVar("--merah");
-  ctx.strokeStyle = cssVar("--tinta");
-  ctx.globalAlpha = 0.5;
-  ctx.beginPath();
-  ctx.moveTo(0, tengah);
-  ctx.lineTo(lebar, tengah);
-  ctx.stroke();
-  ctx.strokeStyle = merah;
-  // Kecil dulu, besar terakhir supaya lonjakan besar tidak tertutup.
-  const urut = [...Array(k.n).keys()].sort((a, b) => k.mag[a] - k.mag[b]);
-  for (const i of urut) {
-    const h = simpangan(k.mag[i]) * (tengah - 4);
-    ctx.globalAlpha = k.mag[i] >= 7 ? 1 : k.mag[i] >= 6 ? 0.7 : 0.35;
-    ctx.lineWidth = k.mag[i] >= 7 ? 1.4 : 1;
-    const px = Math.round(x(k.t[i])) + 0.5;
+
+  // Simpangan per setengah piksel di tiap baris: getaran teredam setelah tiap gempa.
+  const res = 2;
+  const off = Array.from({ length: nBaris }, () => new Float32Array(Math.ceil(lebarJejak * res) + 40));
+  for (let i = 0; i < k.n; i++) {
+    const { baris, x } = letak(k.t[i]);
+    const A = amp(k.mag[i]);
+    const ekor = Math.round(6 + simpangan(k.mag[i]) * 26);
+    const j0 = Math.round((x - kiri) * res);
+    const deret = off[baris];
+    for (let j = 0; j < ekor && j0 + j < deret.length; j++) {
+      const v = A * Math.exp((-3.2 * j) / ekor) * (j % 2 ? -0.85 : 1);
+      if (Math.abs(v) > Math.abs(deret[j0 + j])) deret[j0 + j] = v;
+    }
+  }
+  // Derau halus supaya garis diam tetap terlihat seperti tinta di drum. Deterministik.
+  let benih = 7;
+  const acak = () => ((benih = (benih * 16807) % 2147483647) / 2147483647 - 0.5);
+  const sekarang = letak(Date.now() / 1000);
+  for (let b = 0; b < nBaris; b++) {
+    const deret = off[b];
+    const yb = atas + b * tinggiBaris + tinggiBaris / 2;
+    const batas = b === nBaris - 1 ? (sekarang.x - kiri) * res : deret.length - 40;
+    ctx.strokeStyle = cssVar(TINTA_BARIS[b % TINTA_BARIS.length]);
+    ctx.lineWidth = 1;
+    ctx.lineJoin = "round";
     ctx.beginPath();
-    ctx.moveTo(px, tengah - h);
-    ctx.lineTo(px, tengah + h * 0.8);
+    for (let j = 0; j <= batas; j++) {
+      const y = yb - deret[j] + acak() * 0.9;
+      if (j === 0) ctx.moveTo(kiri, y);
+      else ctx.lineTo(kiri + j / res, y);
+    }
     ctx.stroke();
   }
-  ctx.globalAlpha = 1;
+  // Pena helikorder di ujung baris terakhir.
+  ctx.fillStyle = cssVar("--tinta");
+  ctx.beginPath();
+  ctx.arc(sekarang.x, sekarang.y, 3, 0, Math.PI * 2);
+  ctx.fill();
 
-  // Label untuk beberapa gempa terbesar yang letaknya tidak saling tumpuk.
-  const label: number[] = [];
-  for (const i of [...urut].reverse()) {
-    if (label.length >= (lebar < 600 ? 2 : 4)) break;
-    // Satu label selebar ~115 px; beri jarak cukup supaya tidak bertumpuk.
-    if (label.every((j) => Math.abs(x(k.t[j]) - x(k.t[i])) > (lebar < 600 ? 190 : 150))) label.push(i);
-  }
+  // Label tahun di awal tiap baris.
   const lapis = document.createElement("div");
   lapis.className = "sumbu-tahun";
-  for (let th = 1900; th <= new Date().getUTCFullYear(); th += lebar < 600 ? 25 : 20) {
-    // Tahun pertama rata kiri supaya tidak terpotong tepi bingkai.
-    const px = x(Date.UTC(th, 0, 1) / 1000);
-    const gaya = th === 1900 ? "left:0;transform:none" : px > lebar - 24 ? "right:0;transform:none" : `left:${px}px`;
-    lapis.insertAdjacentHTML("beforeend", `<span style="${gaya}">${th}</span>`);
+  for (let b = 0; b < nBaris; b++) {
+    lapis.insertAdjacentHTML("beforeend", `<span style="top:${atas + b * tinggiBaris + tinggiBaris / 2}px">${AWAL_BARIS + b * TAHUN_PER_BARIS}</span>`);
   }
   wadah.append(lapis);
-  for (const i of label) {
+
+  // Label beberapa gempa terbesar, paling banyak satu per baris.
+  const urut = [...Array(k.n).keys()].sort((a, b) => k.mag[b] - k.mag[a]);
+  const terpakai = new Set<number>();
+  for (const i of urut) {
+    if (terpakai.size >= (sempit ? 3 : 5)) break;
+    const p = letak(k.t[i]);
+    if (terpakai.has(p.baris)) continue;
+    terpakai.add(p.baris);
     const g = gempa(k, i);
     const el = document.createElement("span");
-    el.style.cssText = `position:absolute;top:2px;left:${x(k.t[i]) + 6}px;font:600 12px var(--mono);color:var(--merah);white-space:nowrap;${x(k.t[i]) > lebar - 140 ? "transform:translateX(calc(-100% - 12px))" : ""}`;
+    el.className = "label-gempa";
+    el.style.cssText = `top:${p.y - tinggiBaris / 2 - 2}px;left:${p.x + 8}px;${p.x > lebar - 130 ? "transform:translateX(calc(-100% - 16px))" : ""}`;
     el.textContent = `M${mag1(g.mag)} · ${g.waktu.getUTCFullYear()}`;
     wadah.append(el);
   }
 
   const tip = buatTip(wadah);
-  const urutT = [...Array(k.n).keys()];
   c.addEventListener("pointermove", (e) => {
     const kotak = c.getBoundingClientRect();
     const px = e.clientX - kotak.left;
-    const t0 = x.invert(px - 4);
-    const t1 = x.invert(px + 4);
+    const b = Math.floor((e.clientY - kotak.top - atas) / tinggiBaris);
+    if (b < 0 || b >= nBaris || px < kiri) return tip.sembunyi();
+    const t = awal + b * detikBaris + ((px - kiri) / lebarJejak) * detikBaris;
+    const r = (5 / lebarJejak) * detikBaris;
     let pilih = -1;
-    for (const i of urutT) {
-      if (k.t[i] < t0) continue;
-      if (k.t[i] > t1) break;
+    for (let i = 0; i < k.n; i++) {
+      if (k.t[i] < t - r) continue;
+      if (k.t[i] > t + r) break;
       if (pilih < 0 || k.mag[i] > k.mag[pilih]) pilih = i;
     }
     if (pilih < 0) return tip.sembunyi();
-    tip.tampil(x(k.t[pilih]), tengah - simpangan(k.mag[pilih]) * (tengah - 4), isiTip(gempa(k, pilih)));
+    const p = letak(k.t[pilih]);
+    tip.tampil(p.x, p.y - amp(k.mag[pilih]), isiTip(gempa(k, pilih)));
   });
   c.addEventListener("pointerleave", () => tip.sembunyi());
 }

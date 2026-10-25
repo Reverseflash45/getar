@@ -1,51 +1,39 @@
-@import "@fontsource-variable/archivo/wdth.css";
-@import "@fontsource/jetbrains-mono/400.css";
-@import "@fontsource/jetbrains-mono/600.css";
+@import "@fontsource/barlow/400.css";
+@import "@fontsource/barlow/600.css";
+@import "@fontsource/barlow-condensed/600.css";
+@import "@fontsource/barlow-condensed/800.css";
+@import "@fontsource/barlow-semi-condensed/500.css";
+@import "@fontsource/barlow-semi-condensed/600.css";
 
+/* ---------- token: kertas helikorder di pos pengamatan ---------- */
 :root {
   color-scheme: light;
-  --kertas: #f6f3ea;
-  --kertas-2: #efebdf;
-  --kertas-3: #e6e0d0;
-  --kisi: #d3dde6;
-  --kisi-kuat: #b4c4d2;
-  --tinta: #1b1f24;
-  --tinta-2: #4a5059;
-  --samar: #5f646c;
-  --garis: #d9d3c3;
-  --merah: #c2281f;
-  --darat: #e3ddcd;
-  --darat-garis: #cfc7b3;
-  --sorot: #1f6fb2;
+  --kertas: #f4f8f7;
+  --kertas-2: #e9f0f0;
+  --kertas-3: #dde7e8;
+  --kisi: #d4e3ea;
+  --kisi-kuat: #b3cbd8;
+  --tinta: #121417;
+  --tinta-2: #3c464d;
+  --samar: #56616a;
+  --garis: #c6d5dc;
+  --merah: #d01f1f;
+  --darat: #e2e9ec;
+  --darat-garis: #c7d3d9;
+  --sorot: #1f4fd0;
+  /* tinta pena helikorder, bergantian per baris drum */
+  --jejak-1: #121417;
+  --jejak-2: #d01f1f;
+  --jejak-3: #1f4fd0;
+  --jejak-4: #16804a;
   /* kedalaman: satu rona, makin gelap makin dangkal (divalidasi ordinal) */
   --dangkal: #9e1f1a;
   --menengah: #d24a2a;
   --dalam: #e8894a;
-  --tidak-tahu: #9a958a;
-  --huruf: "Archivo Variable", system-ui, sans-serif;
-  --mono: "JetBrains Mono", ui-monospace, monospace;
-}
-@media (prefers-color-scheme: dark) {
-  :root {
-    color-scheme: dark;
-    --kertas: #13171a;
-    --kertas-2: #1a1f23;
-    --kertas-3: #22292e;
-    --kisi: #222b33;
-    --kisi-kuat: #33414d;
-    --tinta: #ece8de;
-    --tinta-2: #bfc3c8;
-    --samar: #949aa1;
-    --garis: #2a3137;
-    --merah: #ff6b5c;
-    --darat: #232a2f;
-    --darat-garis: #2f383e;
-    --sorot: #6fb3ee;
-    --dangkal: #ff8a73;
-    --menengah: #e0592f;
-    --dalam: #9c3b16;
-    --tidak-tahu: #6c7178;
-  }
+  --tidak-tahu: #98a2a8;
+  --huruf: "Barlow", system-ui, sans-serif;
+  --huruf-judul: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --mono: "Barlow Semi Condensed", "Arial Narrow", sans-serif;
 }
 
 *,
@@ -55,10 +43,16 @@
 }
 body {
   margin: 0;
-  background: var(--kertas);
   color: var(--tinta);
-  font: 400 16px/1.55 var(--huruf);
-  font-variation-settings: "wdth" 100;
+  font: 400 17px/1.55 var(--huruf);
+  font-variant-numeric: tabular-nums;
+  /* kertas grafik: kisi halus tiap 24 px, kisi tebal tiap 120 px */
+  background:
+    linear-gradient(var(--kisi-kuat) 1px, transparent 1px) 0 0 / 120px 120px,
+    linear-gradient(90deg, var(--kisi-kuat) 1px, transparent 1px) 0 0 / 120px 120px,
+    linear-gradient(var(--kisi) 1px, transparent 1px) 0 0 / 24px 24px,
+    linear-gradient(90deg, var(--kisi) 1px, transparent 1px) 0 0 / 24px 24px,
+    var(--kertas);
 }
 a {
   color: inherit;
@@ -96,11 +90,11 @@ input {
 }
 h1,
 h2 {
-  font-family: var(--huruf);
+  font-family: var(--huruf-judul);
   font-weight: 800;
-  font-variation-settings: "wdth" 72;
-  letter-spacing: -0.01em;
-  line-height: 0.98;
+  letter-spacing: -0.005em;
+  line-height: 0.95;
+  text-wrap: balance;
 }
 h1 {
   margin: 10px 0 0;
@@ -135,8 +129,7 @@ main,
   align-items: center;
   gap: 10px;
   text-decoration: none;
-  font: 800 26px/1 var(--huruf);
-  font-variation-settings: "wdth" 72;
+  font: 800 28px/1 var(--huruf-judul);
 }
 .merek svg {
   width: 40px;
@@ -164,14 +157,15 @@ main,
   color: var(--tinta-2);
 }
 .seismo-bingkai {
-  margin-top: 26px;
-  border-top: 1px solid var(--kisi-kuat);
-  border-bottom: 1px solid var(--kisi-kuat);
-  background-color: var(--kertas);
-  background-image:
-    linear-gradient(var(--kisi) 1px, transparent 1px),
-    linear-gradient(90deg, var(--kisi) 1px, transparent 1px);
-  background-size: 100% 20px, 20px 100%;
+  /* lembar helikorder: kertas putih terjepit di drum */
+  margin-top: 28px;
+  padding: 6px 0;
+  border: 1px solid var(--kisi-kuat);
+  border-radius: 3px;
+  background:
+    linear-gradient(90deg, rgb(18 20 23 / 0.05), transparent 3%, transparent 97%, rgb(18 20 23 / 0.05)),
+    #fbfdfd;
+  box-shadow: 0 1px 0 var(--kisi-kuat), 0 14px 30px -18px rgb(18 40 60 / 0.45);
 }
 .seismo {
   position: relative;
@@ -180,15 +174,21 @@ main,
   display: block;
   width: 100%;
 }
-.sumbu-tahun {
-  position: relative;
-  height: 22px;
-  font: 400 11px/22px var(--mono);
-  color: var(--samar);
-}
 .sumbu-tahun span {
   position: absolute;
-  transform: translateX(-50%);
+  left: 8px;
+  transform: translateY(-50%);
+  font: 600 13px/1 var(--mono);
+  color: var(--samar);
+}
+.label-gempa {
+  position: absolute;
+  font: 600 13px/1 var(--mono);
+  color: var(--tinta);
+  background: #fbfdfd;
+  padding: 1px 4px;
+  white-space: nowrap;
+  pointer-events: none;
 }
 
 /* ---------- tooltip ---------- */
@@ -266,7 +266,7 @@ main,
   cursor: pointer;
 }
 .saran li small {
-  font: 400 11px var(--mono);
+  font: 500 12px var(--mono);
   color: var(--samar);
 }
 .saran li[aria-selected="true"] {
@@ -298,8 +298,7 @@ main,
 }
 .nama-daerah {
   margin: 0;
-  font: 800 34px/1 var(--huruf);
-  font-variation-settings: "wdth" 80;
+  font: 800 36px/1 var(--huruf-judul);
 }
 .nama-daerah small {
   display: block;
