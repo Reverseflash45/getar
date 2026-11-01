@@ -528,3 +528,21 @@ main,
     display: none;
   }
 }
+
+/* pesan tempat peta sebelum digambar: peta kecil 560×420, peta besar lebar × 0,42 (vis.ts) */
+.peta-kecil:empty {
+  aspect-ratio: 560 / 420;
+}
+.peta-besar:empty {
+  aspect-ratio: 1 / 0.42;
+}
+
+/* tinggi helikorder sebelum digambar: 18 + baris × tinggi baris + 10 (vis.ts); 6 baris sampai 2049 */
+.seismo:empty {
+  height: 340px;
+}
+@media (max-width: 631px) {
+  .seismo:empty {
+    height: 268px;
+  }
+}

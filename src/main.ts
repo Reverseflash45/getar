@@ -201,11 +201,37 @@ new ResizeObserver(([e]) => {
 }).observe(document.querySelector("main")!);
 
 /* ---------- mulai ---------- */
-Promise.all([fetch(`${import.meta.env.BASE_URL}data/gempa.json`).then((r) => r.json() as Promise<Katalog>), muatPeta()])
-  .then(([katalog, p]) => {
-    k = katalog;
+// Data gempa langsung menggambar pembuka; peta (untuk dua peta di bawah layar pertama) baru diunduh
+// dan digambar saat bagiannya hampir terlihat, supaya pembukaan halaman tidak macet.
+function saatHampirTerlihat(el: Element, kerja: () => void) {
+  if (!("IntersectionObserver" in window)) return kerja();
+  const io = new IntersectionObserver(
+    (isi) => {
+      if (!isi.some((e) => e.isIntersecting)) return;
+      io.disconnect();
+      kerja();
+    },
+    { rootMargin: "800px 0px" },
+  );
+  io.observe(el);
+}
+
+let janjiPeta: Promise<void> | null = null;
+const siapkanPeta = () =>
+  (janjiPeta ??= muatPeta().then((p) => {
     peta = p;
-    gambarSemua();
+  }));
+
+fetch(`${import.meta.env.BASE_URL}data/gempa.json`)
+  .then((r) => r.json() as Promise<Katalog>)
+  .then((katalog) => {
+    k = katalog;
+    gambarPembuka();
+    gambarSekitar();
+    gambarTerbesar();
+    gambarGrafik();
+    saatHampirTerlihat($("#peta-kecil"), () => void siapkanPeta().then(gambarSekitar));
+    saatHampirTerlihat($("#peta-besar"), () => void siapkanPeta().then(gambarPeta));
   })
   .catch(() => {
     $("#seismo").innerHTML = `<p style="padding:20px;font:13px var(--mono)">Data gempa gagal dimuat. Muat ulang halaman.</p>`;
