@@ -1,5 +1,6 @@
 import type { FeatureCollection, Geometry, MultiLineString } from "geojson";
 import { geoCircle, geoMercator, geoPath } from "d3-geo";
+import { jalurDatar, titikSudut } from "./datar";
 import { scaleBand, scaleLinear, scaleLog } from "d3-scale";
 import { feature, mesh } from "topojson-client";
 import type { GeometryCollection, Topology } from "topojson-specification";
@@ -200,9 +201,9 @@ export function gambarPetaBesar(wadah: HTMLElement, peta: Peta, k: Katalog, magM
       [tepi, tepi],
       [lebar - tepi, tinggi - tepi],
     ],
-    semua,
+    titikSudut(semua),
   );
-  const jalur = geoPath(proyeksi);
+  const jalur = jalurDatar(proyeksi);
   wadah.style.height = `${tinggi}px`;
   wadah.innerHTML = `<svg viewBox="0 0 ${lebar} ${tinggi}" aria-hidden="true">
     <path d="${jalur(peta.darat) ?? ""}" fill="var(--darat)"/>
