@@ -6,7 +6,8 @@ import { gambarPetaBesar, gambarPetaKecil, gambarSeismo, grafikGR, grafikTahun, 
 const $ = <T extends Element = HTMLElement>(s: string) => document.querySelector<T>(s)!;
 const $$ = <T extends Element = HTMLElement>(s: string) => [...document.querySelectorAll<T>(s)];
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
-const angka = (n: number) => n.toLocaleString("id-ID");
+/** Pemisah ribuan id-ID tanpa Intl: membangun formatter ICU pertama kali memakan puluhan ms di HP. */
+const angka = (n: number) => (Number.isInteger(n) ? String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ".") : n.toLocaleString("id-ID"));
 
 /* ---------- keadaan dari URL (#daerah=kota-palu&r=150) ---------- */
 const hash = new URLSearchParams(location.hash.slice(1));
@@ -214,7 +215,7 @@ function saatHampirTerlihat(el: Element, kerja: () => void) {
       io.disconnect();
       kerja();
     },
-    { rootMargin: "800px 0px" },
+    { rootMargin: "250px 0px" },
   );
   io.observe(el);
 }
