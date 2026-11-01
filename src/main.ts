@@ -1,5 +1,6 @@
 import "./gaya.css";
 import { DAERAH, type Daerah, type Gempa, type Katalog, cariDaerah, gempa, gutenbergRichter, kaliEnergi, nilaiB, perTahun, ringkas, sekitar, terbesar } from "./analisis";
+import { htmlTetangga } from "./tetangga";
 import { gambarPetaBesar, gambarPetaKecil, gambarSeismo, grafikGR, grafikTahun, mag1, muatPeta, tanggal, type Peta } from "./vis";
 
 const $ = <T extends Element = HTMLElement>(s: string) => document.querySelector<T>(s)!;
@@ -63,7 +64,9 @@ function gambarSekitar() {
         )
         .join("")
     : `<li class="kosong">Tidak ada.</li>`;
+  $("[data-tetangga]").innerHTML = htmlTetangga(pilihan.id, pilihan.nama, "getar");
   if (peta) gambarPetaKecil($("#peta-kecil"), peta, pilihan, radius, daftar);
+
   $$<HTMLButtonElement>("[data-radius]").forEach((b) => b.setAttribute("aria-pressed", String(Number(b.dataset.radius) === radius)));
   masuk.value = pilihan.nama;
 }
